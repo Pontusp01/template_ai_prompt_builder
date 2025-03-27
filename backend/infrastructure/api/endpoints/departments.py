@@ -8,12 +8,10 @@ def register_department_routes(app, department_service):
     @app.route('/api/departments', methods=['GET'])
     def get_departments():
         try:
-            # Add logging before making service call
             print("GET /api/departments: Fetching departments")
             
             departments = department_service.get_all_departments()
             
-            # Add logging after service call
             print(f"GET /api/departments: Retrieved {len(departments)} departments")
             
             return jsonify(departments)
@@ -25,6 +23,21 @@ def register_department_routes(app, department_service):
             print(f"Stacktrace: {traceback.format_exc()}")
             return jsonify({'error': 'Failed to retrieve departments', 'details': str(e)}), 500
     
+    @app.route('/api/templates/<template_id>/departments', methods=['GET'])
+    def get_departments_by_template(template_id):
+        try:
+            print(f"GET /api/templates/{template_id}/departments: Fetching departments for template")
+            departments = department_service.get_departments_by_template(template_id)
+            print(f"GET /api/templates/{template_id}/departments: Retrieved {len(departments)} departments")
+            return jsonify(departments)
+        except Exception as e:
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            fname = traceback.extract_tb(exc_tb)[-1][0]
+            line = traceback.extract_tb(exc_tb)[-1][1]
+            print(f"Error getting departments for template {template_id} at {fname}:{line}: {e}")
+            print(f"Stacktrace: {traceback.format_exc()}")
+            return jsonify({'error': 'Failed to retrieve departments', 'details':str(e)}), 500
+
     @app.route('/api/departments', methods=['POST'])
     def create_department():
         try:
@@ -32,7 +45,6 @@ def register_department_routes(app, department_service):
             if not data:
                 return jsonify({'error': 'No data provided'}), 400
             
-            # Add logging for debugging
             print(f"POST /api/departments: Creating department with data: {data}")
             
             department = department_service.create_department(data)
@@ -53,7 +65,6 @@ def register_department_routes(app, department_service):
     @app.route('/api/departments/<department_id>', methods=['GET'])
     def get_department(department_id):
         try:
-            # Get a single department
             department = department_service.get_department_by_id(department_id)
             
             if department:
@@ -76,6 +87,16 @@ def register_department_routes(app, department_service):
             
             print(f"PUT /api/departments/{department_id}: Received data: {data}")
             
+            # If this is a template association request
+            if 'template_id' in data and len(data) == 1:
+                print(f"PUT /api/departments/{department_id}: Associating with template {data['template_id']}")
+                success = department_service.associate_with_template(department_id, data['template_id'])
+                
+                if success:
+                    return jsonify({'message': 'Template associated successfully'})
+                return jsonify({'error': 'Failed to associate template'}), 400
+            
+            # Regular update  
             department = department_service.update_department(department_id, data)
             
             if department:
