@@ -116,7 +116,17 @@ class DepartmentService:
     def associate_with_template(self, department_id, template_id):
         """Associate a department with a template."""
         try:
-            result = self.repository.associate_with_template(department_id, template_id)
+            # Säkerställ att department_id är en sträng om det behövs
+            department_id_str = str(department_id)
+            
+            # Om template_id inte är None, konvertera till integer
+            # Detta är kritiskt för PostgreSQL som kräver rätt typ
+            template_id_converted = int(template_id) if template_id is not None else None
+            
+            print(f"BEFORE CONVERSION - department_id: {department_id} ({type(department_id)}), template_id: {template_id} ({type(template_id)})")
+            print(f"AFTER CONVERSION - department_id: {department_id_str} ({type(department_id_str)}), template_id: {template_id_converted} ({type(template_id_converted)})")
+            
+            result = self.repository.associate_with_template(department_id_str, template_id_converted)
             if result:
                 print(f"Associated department {department_id} with template {template_id}")
             else:

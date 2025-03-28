@@ -142,3 +142,22 @@ class CompletionTypeService:
             print(f"Error in completion type service remove_template_association at {fname}:{line}: {e}")
             print(f"Stacktrace: {traceback.format_exc()}")
             raise
+    
+    def delete_completion_type(self, completion_type_id):
+        """Delete a completion type."""
+        try:
+            success = self.repository.delete(completion_type_id)
+            if success:
+                print(f"Deleted completion type with ID {completion_type_id}")
+                return True
+            else:
+                print(f"Completion type with ID {completion_type_id} could not be deleted, it may be referenced by templates")
+                return False
+                
+        except Exception as e:
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            fname = traceback.extract_tb(exc_tb)[-1][0]
+            line = traceback.extract_tb(exc_tb)[-1][1]
+            print(f"Error in completion type service delete_completion_type at {fname}:{line}: {e}")
+            print(f"Stacktrace: {traceback.format_exc()}")
+            raise

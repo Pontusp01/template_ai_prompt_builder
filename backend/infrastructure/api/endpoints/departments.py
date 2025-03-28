@@ -78,6 +78,7 @@ def register_department_routes(app, department_service):
             print(f"Stacktrace: {traceback.format_exc()}")
             return jsonify({'error': 'Failed to retrieve department', 'details': str(e)}), 500
     
+    # Uppdatering till routes.py - update_department
     @app.route('/api/departments/<department_id>', methods=['PUT'])
     def update_department(department_id):
         try:
@@ -86,15 +87,31 @@ def register_department_routes(app, department_service):
                 return jsonify({'error': 'No data provided'}), 400
             
             print(f"PUT /api/departments/{department_id}: Received data: {data}")
+            print(f"Department ID type: {type(department_id)}")
             
             # If this is a template association request
             if 'template_id' in data and len(data) == 1:
-                print(f"PUT /api/departments/{department_id}: Associating with template {data['template_id']}")
-                success = department_service.associate_with_template(department_id, data['template_id'])
+                template_id = data['template_id']
+                print(f"PUT /api/departments/{department_id}: Associating with template {template_id} (Type: {type(template_id)})")
                 
-                if success:
-                    return jsonify({'message': 'Template associated successfully'})
-                return jsonify({'error': 'Failed to associate template'}), 400
+                # VIKTIGT: Hantera tom sträng som NULL-värde
+                if template_id == '':
+                    print(f"Empty template_id detected, will set to NULL")
+                    # Anropa remove_template_association istället för associate_with_template
+                    success = department_service.remove_template_association(department_id)
+                    if success:
+                        return jsonify({'message': 'Template association removed successfully'})
+                    return jsonify({'error': 'Failed to remove template association'}), 400
+                else:
+                    try:
+                        # Testa om template_id kan konverteras till integer
+                        int(template_id)
+                        success = department_service.associate_with_template(department_id, template_id)
+                        if success:
+                            return jsonify({'message': 'Template associated successfully'})
+                        return jsonify({'error': 'Failed to associate template'}), 400
+                    except ValueError:
+                        return jsonify({'error': 'Invalid template ID format'}), 400
             
             # Regular update  
             department = department_service.update_department(department_id, data)
@@ -112,7 +129,7 @@ def register_department_routes(app, department_service):
             print(f"Error updating department {department_id} at {fname}:{line}: {e}")
             print(f"Stacktrace: {traceback.format_exc()}")
             return jsonify({'error': 'Failed to update department', 'details': str(e)}), 500
-    
+        
     @app.route('/api/departments/<department_id>', methods=['DELETE'])
     def delete_department(department_id):
         try:

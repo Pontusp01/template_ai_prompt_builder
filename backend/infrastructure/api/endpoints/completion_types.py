@@ -101,10 +101,16 @@ def register_completion_type_routes(app, completion_type_service):
     @app.route('/api/completion-types/<completion_type_id>', methods=['DELETE'])
     def delete_completion_type(completion_type_id):
         try:
+            # Försök ta bort completion type
             success = completion_type_service.delete_completion_type(completion_type_id)
             if success:
-                return jsonify({'message': 'Completion type deleted'})  
-            return jsonify({'error': 'Completion type not found'}), 404
+                return jsonify({'message': 'Completion type deleted'})
+            
+            # Om borttagningen misslyckades, skicka mer detaljer om problemet
+            return jsonify({
+                'error': 'Completion type could not be deleted',
+                'detail': 'This completion type is referenced by one or more templates. Remove these associations first.'
+            }), 409  # 409 Conflict
         except Exception as e:
             exc_type, exc_obj, exc_tb = sys.exc_info()
             fname = traceback.extract_tb(exc_tb)[-1][0]

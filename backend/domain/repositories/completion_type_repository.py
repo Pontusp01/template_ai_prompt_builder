@@ -431,3 +431,60 @@ class CompletionTypeRepository:
                 cursor.close()
             if conn:
                 conn.close()
+
+
+    def delete(self, completion_type_id):
+        """Delete a completion type."""
+        conn = None
+        cursor = None
+        try:
+            conn = get_db_connection()
+            cursor = conn.cursor()
+            
+            # Först kontrollera om denna completion type används av några templates
+            cursor.execute("""
+                SELECT id, title FROM templates 
+                WHERE completion_type_id = %s
+            """, (completion_type_id,))
+            
+            templates = cursor.fetchall()
+            if templates:
+                template_ids = []
+                if hasattr(templates[0], 'keys'):
+                    template_ids = [row['id'] for row in templates]
+                    template_titles = [row['title'] for row in templates]
+                else:
+                    template_ids = [row[0] for row in templates]
+                    template_titles = [row[1] for row in templates]
+                    
+                print(f"Warning: Cannot delete completion type {completion_type_id} because it is used by templates: {template_titles}")
+                return False
+            
+            # Om det inte finns några referenser, fortsätt med borttagningen
+            cursor.execute("""
+                DELETE FROM completion_types
+                WHERE id = %s
+                RETURNING id
+            """, (completion_type_id,))
+            
+            row = cursor.fetchone()
+            success = row is not None
+            
+            conn.commit()
+            return success
+            
+        except Exception as e:
+            if conn:
+                conn.rollback()
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            fname = traceback.extract_tb(exc_tb)[-1][0]
+            line = traceback.extract_tb(exc_tb)[-1][1]
+            print(f"Error in completion type repository delete at {fname}:{line}: {e}")
+            print(f"Stacktrace: {traceback.format_exc()}")
+            raise
+            
+        finally:
+            if cursor:
+                cursor.close()
+            if conn:
+                conn.close()

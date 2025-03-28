@@ -224,6 +224,24 @@ class DepartmentRepository:
             conn = get_db_connection()
             cursor = conn.cursor()
             
+            # Skriv ut detaljer för felsökning
+            print(f"[REPO] Associating department {department_id} with template {template_id}")
+            print(f"[REPO] Department ID type: {type(department_id)}, Template ID type: {type(template_id)}")
+            
+            # Testa att först hämta departmentet för att säkerställa att det existerar
+            cursor.execute("SELECT id FROM departments WHERE id = %s", (department_id,))
+            dept_exists = cursor.fetchone()
+            print(f"[REPO] Department exists check: {dept_exists}")
+            
+            # Om template_id inte är None, verifiera att mallen existerar
+            if template_id is not None:
+                cursor.execute("SELECT id FROM templates WHERE id = %s", (template_id,))
+                template_exists = cursor.fetchone()
+                print(f"[REPO] Template exists check: {template_exists}")
+                if not template_exists:
+                    print(f"[REPO] WARNING: Template with ID {template_id} does not exist!")
+            
+            # Kör uppdateringen
             cursor.execute("""
                 UPDATE departments
                 SET template_id = %s
@@ -233,6 +251,15 @@ class DepartmentRepository:
             
             row = cursor.fetchone()
             success = row is not None
+            
+            # Skriv ut resultat för felsökning
+            print(f"[REPO] Association query result: {row}")
+            if not success:
+                print(f"[REPO] WARNING: Update succeeded but no rows were returned!")
+                # Kontrollera om någon rad uppdaterades, även om RETURNING inte gav resultat
+                affected_rows = cursor.rowcount
+                print(f"[REPO] Affected rows: {affected_rows}")
+                success = affected_rows > 0
             
             conn.commit()
             return success

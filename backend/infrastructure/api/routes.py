@@ -1,3 +1,4 @@
+# infrastructure/api/routes.py
 from flask import Blueprint, jsonify, request, current_app
 from application.services.template_service import TemplateService
 from application.services.department_service import DepartmentService
@@ -5,13 +6,12 @@ from application.services.color_service import ColorService
 from application.services.completion_type_service import CompletionTypeService
 from application.services.text_management_service import TextManagementService
 
-
 from infrastructure.api.endpoints import (
     register_department_routes,
     register_template_routes,
     register_color_routes,
     register_completion_type_routes,
-    text_management_routes,
+    register_text_management_routes,
     register_debug_routes
 )
 
@@ -23,13 +23,14 @@ def register_routes(app):
     department_service = DepartmentService()
     color_service = ColorService()
     completion_type_service = CompletionTypeService()
-    TextManagementService = TextManagementService()
+    text_management_service = TextManagementService()
     
     # Register all routes
     register_department_routes(app, department_service)
     register_template_routes(app, template_service)
     register_color_routes(app, color_service)
     register_completion_type_routes(app, completion_type_service)
+    register_text_management_routes(app, text_management_service)  # Nu konsekvent med andra routes
     register_debug_routes(app)
     
     # Health check endpoint

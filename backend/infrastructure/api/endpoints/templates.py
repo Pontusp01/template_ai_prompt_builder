@@ -9,6 +9,7 @@ def register_template_routes(app, template_service):
     @app.route('/api/templates', methods=['GET'])
     def get_templates():
         try:
+            print("GET /api/templates: Getting all templates test")
             templates = template_service.get_all_templates()
             return jsonify(templates)
         except Exception as e:
