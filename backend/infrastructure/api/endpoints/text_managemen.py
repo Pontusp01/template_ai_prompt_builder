@@ -93,6 +93,31 @@ def register_text_management_routes(app, text_management_service):
             print(f"Stacktrace: {traceback.format_exc()}")
             return jsonify({'error': 'Failed to update variable', 'details': str(e)}), 500
 
+    @app.route('/api/text/variables/<int:variable_id>/comments', methods=['PUT'])
+    def update_variable_comments(variable_id):
+        try:
+            data = request.json
+            if not isinstance(data, dict) or 'comments' not in data:
+                return jsonify({'error': 'Missing comments field in request data'}), 400
+                
+            print(f"PUT /api/text/variables/{variable_id}/comments: Setting comments to {data['comments']}")
+            
+            updated_variable = text_management_service.update_variable_comments(variable_id, data['comments'])
+            
+            if updated_variable:
+                print(f"PUT /api/text/variables/{variable_id}/comments: Comments status updated to {data['comments']}")
+                return jsonify({'message': 'Comments status updated successfully', 'variable': updated_variable})
+                
+            return jsonify({'error': 'Variable not found'}), 404
+                
+        except Exception as e:
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            fname = traceback.extract_tb(exc_tb)[-1][0]
+            line = traceback.extract_tb(exc_tb)[-1][1]
+            print(f"Error updating variable comments {variable_id} at {fname}:{line}: {e}")
+            print(f"Stacktrace: {traceback.format_exc()}")
+            return jsonify({'error': 'Failed to update comments status', 'details': str(e)}), 500
+
     @app.route('/api/text/variables/<int:variable_id>', methods=['DELETE'])
     def delete_variable(variable_id):
         try:

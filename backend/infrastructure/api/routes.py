@@ -5,6 +5,8 @@ from application.services.color_service import ColorService
 from application.services.completion_type_service import CompletionTypeService
 from application.services.text_management_service import TextManagementService
 from application.services.connect_children_categories_service import ConnectChildrenCategoryService
+from application.services.category_service import CategoryService
+from application.services.information_service import InformationService
 
 from infrastructure.api.endpoints import (
     register_department_routes,
@@ -13,7 +15,9 @@ from infrastructure.api.endpoints import (
     register_completion_type_routes,
     register_text_management_routes,
     register_debug_routes,
-    register_connect_children_categories_routes
+    register_connect_children_categories_routes,
+    register_category_routes,
+    register_information_routes
 )
 
 def register_routes(app):
@@ -26,6 +30,8 @@ def register_routes(app):
     completion_type_service = CompletionTypeService()
     text_management_service = TextManagementService()
     connect_children_category_service = ConnectChildrenCategoryService()
+    category_service = CategoryService()
+    information_service = InformationService()
     
     # Register all routes
     register_department_routes(app, department_service)
@@ -34,6 +40,8 @@ def register_routes(app):
     register_completion_type_routes(app, completion_type_service)
     register_text_management_routes(app, text_management_service)
     register_connect_children_categories_routes(app, connect_children_category_service)
+    register_category_routes(app, category_service)
+    register_information_routes(app, information_service)
     register_debug_routes(app)
     
     # Health check endpoint

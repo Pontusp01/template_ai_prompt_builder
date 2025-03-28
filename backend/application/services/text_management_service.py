@@ -49,6 +49,9 @@ class TextManagementService:
                 
             if 'variabel_namn' not in variable_data:
                 variable_data['variabel_namn'] = f"${variable_data['namn']}$"
+                
+            if 'comments' not in variable_data:
+                variable_data['comments'] = False
             
             variable = self.repository.create_variable(variable_data)
             print(f"Created variable: {variable['namn']} with ID {variable['id']}")
@@ -77,6 +80,9 @@ class TextManagementService:
                 
             if 'variabel_namn' not in variable_data:
                 variable_data['variabel_namn'] = f"${variable_data['namn']}$"
+                
+            if 'comments' not in variable_data:
+                variable_data['comments'] = False
             
             variable = self.repository.update_variable(variable_id, variable_data)
             
@@ -108,5 +114,37 @@ class TextManagementService:
             fname = traceback.extract_tb(exc_tb)[-1][0]
             line = traceback.extract_tb(exc_tb)[-1][1]
             print(f"Error in text management service delete_variable at {fname}:{line}: {e}")
+            print(f"Stacktrace: {traceback.format_exc()}")
+            raise
+            
+    def update_variable_comments(self, variable_id, comments_status):
+        """Update comments status for a variable."""
+        try:
+            # Hämta befintlig variabel
+            existing_variable = self.repository.get_variable_by_id(variable_id)
+            if not existing_variable:
+                print(f"Variable with ID {variable_id} not found for comments update")
+                return None
+            
+            # Uppdatera endast comments-fältet
+            update_data = {
+                'namn': existing_variable['namn'],
+                'beskrivning': existing_variable.get('beskrivning', ''),
+                'variabel_namn': existing_variable.get('variabel_namn', ''),
+                'comments': comments_status
+            }
+            
+            variable = self.repository.update_variable(variable_id, update_data)
+            
+            if variable:
+                print(f"Updated comments status for variable with ID {variable['id']} to {comments_status}")
+            
+            return variable
+            
+        except Exception as e:
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            fname = traceback.extract_tb(exc_tb)[-1][0]
+            line = traceback.extract_tb(exc_tb)[-1][1]
+            print(f"Error in text management service update_variable_comments at {fname}:{line}: {e}")
             print(f"Stacktrace: {traceback.format_exc()}")
             raise

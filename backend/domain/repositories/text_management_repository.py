@@ -9,7 +9,7 @@ class TextManagementRepository:
         try:
             conn = get_db_connection()
             cursor = conn.cursor()
-            cursor.execute("SELECT id, namn, beskrivning, variabel_namn FROM category_variabels")
+            cursor.execute("SELECT id, namn, beskrivning, variabel_namn, comments FROM category_variabels")
             variables = cursor.fetchall()
             
             # Konvertera databasresultat till JSON-vänligt format
@@ -21,7 +21,8 @@ class TextManagementRepository:
                         'id': var['id'],
                         'namn': var['namn'],
                         'beskrivning': var['beskrivning'],
-                        'variabel_namn': var['variabel_namn']
+                        'variabel_namn': var['variabel_namn'],
+                        'comments': var['comments']
                     }
                 else:
                     # Använder reguljär cursor
@@ -29,7 +30,8 @@ class TextManagementRepository:
                         'id': var[0],
                         'namn': var[1],
                         'beskrivning': var[2],
-                        'variabel_namn': var[3]
+                        'variabel_namn': var[3],
+                        'comments': var[4]
                     }
                 result.append(variable)
                 
@@ -50,7 +52,7 @@ class TextManagementRepository:
         try:
             conn = get_db_connection()
             cursor = conn.cursor()
-            cursor.execute("SELECT id, namn, beskrivning, variabel_namn FROM category_variabels WHERE id = %s", (variable_id,))
+            cursor.execute("SELECT id, namn, beskrivning, variabel_namn, comments FROM category_variabels WHERE id = %s", (variable_id,))
             var = cursor.fetchone()
             
             if not var:
@@ -63,7 +65,8 @@ class TextManagementRepository:
                     'id': var['id'],
                     'namn': var['namn'],
                     'beskrivning': var['beskrivning'],
-                    'variabel_namn': var['variabel_namn']
+                    'variabel_namn': var['variabel_namn'],
+                    'comments': var['comments']
                 }
             else:
                 # Använder reguljär cursor
@@ -71,7 +74,8 @@ class TextManagementRepository:
                     'id': var[0],
                     'namn': var[1],
                     'beskrivning': var[2],
-                    'variabel_namn': var[3]
+                    'variabel_namn': var[3],
+                    'comments': var[4]
                 }
                 
             return variable
@@ -93,11 +97,12 @@ class TextManagementRepository:
             cursor = conn.cursor()
             
             cursor.execute(
-                "INSERT INTO category_variabels (namn, beskrivning, variabel_namn) VALUES (%s, %s, %s) RETURNING id, namn, beskrivning, variabel_namn",
+                "INSERT INTO category_variabels (namn, beskrivning, variabel_namn, comments) VALUES (%s, %s, %s, %s) RETURNING id, namn, beskrivning, variabel_namn, comments",
                 (
                     variable_data.get('namn', ''),
                     variable_data.get('beskrivning', ''),
-                    variable_data.get('variabel_namn', '')
+                    variable_data.get('variabel_namn', ''),
+                    variable_data.get('comments', False)
                 )
             )
             
@@ -110,7 +115,8 @@ class TextManagementRepository:
                     'id': var['id'],
                     'namn': var['namn'],
                     'beskrivning': var['beskrivning'],
-                    'variabel_namn': var['variabel_namn']
+                    'variabel_namn': var['variabel_namn'],
+                    'comments': var['comments']
                 }
             else:
                 # Använder reguljär cursor
@@ -118,7 +124,8 @@ class TextManagementRepository:
                     'id': var[0],
                     'namn': var[1],
                     'beskrivning': var[2],
-                    'variabel_namn': var[3]
+                    'variabel_namn': var[3],
+                    'comments': var[4]
                 }
             
             conn.commit()
@@ -143,11 +150,12 @@ class TextManagementRepository:
             cursor = conn.cursor()
             
             cursor.execute(
-                "UPDATE category_variabels SET namn = %s, beskrivning = %s, variabel_namn = %s WHERE id = %s RETURNING id, namn, beskrivning, variabel_namn",
+                "UPDATE category_variabels SET namn = %s, beskrivning = %s, variabel_namn = %s, comments = %s WHERE id = %s RETURNING id, namn, beskrivning, variabel_namn, comments",
                 (
                     variable_data.get('namn', ''),
                     variable_data.get('beskrivning', ''),
                     variable_data.get('variabel_namn', ''),
+                    variable_data.get('comments', False),
                     variable_id
                 )
             )
@@ -164,7 +172,8 @@ class TextManagementRepository:
                     'id': var['id'],
                     'namn': var['namn'],
                     'beskrivning': var['beskrivning'],
-                    'variabel_namn': var['variabel_namn']
+                    'variabel_namn': var['variabel_namn'],
+                    'comments': var['comments']
                 }
             else:
                 # Använder reguljär cursor
@@ -172,7 +181,8 @@ class TextManagementRepository:
                     'id': var[0],
                     'namn': var[1],
                     'beskrivning': var[2],
-                    'variabel_namn': var[3]
+                    'variabel_namn': var[3],
+                    'comments': var[4]
                 }
             
             conn.commit()
